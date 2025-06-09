@@ -1,0 +1,33 @@
+@import './base.css';
+
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+}
+
+.view-container {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 30px 80px;
+  line-height: 2;
+  color: #333;
+}
+
+.view-title {
+  margin: 10px 0 10px 0;
+}
