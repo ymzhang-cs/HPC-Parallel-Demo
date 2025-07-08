@@ -159,22 +159,6 @@ Parameters:
 - **算法优化**: 针对图像处理特点的算法优化
 - **可扩展性**: 支持不同规模的图像处理任务
 
-## 🤝 贡献指南
-
-1. Fork 项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开 Pull Request
-
-## 📝 开发计划
-
-- [ ] 添加更多图像处理算法
-- [ ] 支持GPU加速 (CUDA/OpenCL)
-- [ ] 添加批处理功能
-- [ ] 优化前端用户体验
-- [ ] 添加性能监控和日志
-
 ## 📄 许可证
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
@@ -187,6 +171,9 @@ Parameters:
 - Email: hpc@ymzhangcs.com
 
 **冉金禄**
+
+- GitHub: [@JLRan-cs](https://github.com/JLRan-cs)
+- Email: linr220908@gmail.com
 
 ## 🙏 致谢
 

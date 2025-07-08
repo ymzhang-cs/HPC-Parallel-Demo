@@ -9,7 +9,7 @@
         Contributors: 
         <el-link type="primary" href="https://github.com/ymzhang-cs" target="_blank">ymzhang-cs</el-link>
         /
-        <el-link type="primary" href="https://github.com/ymzhang-cs" target="_blank">ymzhang-cs</el-link>
+        <el-link type="primary" href="https://github.com/JLRan-cs" target="_blank">JLRan-cs</el-link>
       </p>
     </div>
   </div>
