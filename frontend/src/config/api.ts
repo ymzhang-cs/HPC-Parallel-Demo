@@ -77,6 +77,8 @@ export interface ApiResponse {
         output_file: string
     }
     speedup?: number
+    // OpenMP线程数相关字段
+    max_threads?: number
 }
 
 // 图像处理参数类型

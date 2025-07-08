@@ -1687,16 +1687,20 @@ double apply_sobel_edge_detection_serial_py(const std::string &input, const std:
     return end_time - start_time;
 }
 
+// 全局变量存储当前设置的线程数
+static int current_omp_threads = omp_get_max_threads();
+
 // 设置OpenMP线程数的函数
 void set_omp_threads(int num_threads)
 {
     omp_set_num_threads(num_threads);
+    current_omp_threads = num_threads;
 }
 
 // 获取OpenMP线程数的函数
 int get_omp_threads()
 {
-    return omp_get_max_threads();
+    return current_omp_threads;
 }
 
 // pybind11模块定义
