@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import BasicImageTransform from '../views/BasicImageTransform.vue'
 import BasicConvolution from '../views/BasicConvolution.vue'
 import CustomConvolution from '../views/CustomConvolution.vue'
+import ImageStitching from '../views/ImageStitching.vue'
 import AboutView from '../views/AboutView.vue'
 
 const router = createRouter({
@@ -27,6 +28,11 @@ const router = createRouter({
       path: '/custom-convolution',
       name: 'custom-convolution',
       component: CustomConvolution
+    },
+    {
+      path: '/image-stitching',
+      name: 'image-stitching',
+      component: ImageStitching
     },
     {
       path: '/about',

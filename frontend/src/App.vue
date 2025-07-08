@@ -2,12 +2,13 @@
 import { RouterView } from 'vue-router'
 import { HomeFilled, Picture, InfoFilled } from '@element-plus/icons-vue'
 import githubIcon from './assets/github-mark-white.svg'
+import ApiHealthIndicator from './components/ApiHealthIndicator.vue'
 </script>
 
 <template>
   <el-container class="common-layout">
     <el-header>
-      <h2>HPC 并行计算演示系统</h2>
+      <h2>OMPic 图像处理并行加速演示系统 </h2>
       <div class="header-right">
         <a href="https://github.com/ymzhang-cs/HPC-Parallel-Demo" target="_blank" class="github-link">
           <img :src="githubIcon" alt="GitHub" class="github-icon" />
@@ -41,6 +42,12 @@ import githubIcon from './assets/github-mark-white.svg'
             </el-icon>
             <span>自定义卷积操作</span>
           </el-menu-item>
+          <el-menu-item index="/image-stitching">
+            <el-icon>
+              <Picture />
+            </el-icon>
+            <span>图像拼接</span>
+          </el-menu-item>
           <el-menu-item index="/about">
             <el-icon>
               <InfoFilled />
@@ -48,6 +55,7 @@ import githubIcon from './assets/github-mark-white.svg'
             <span>关于</span>
           </el-menu-item>
         </el-menu>
+        <ApiHealthIndicator />
       </el-aside>
       <el-main>
         <router-view v-slot="{ Component }">
@@ -78,10 +86,13 @@ import githubIcon from './assets/github-mark-white.svg'
 .el-aside {
   background-color: #f5f7fa;
   border-right: solid 1px #e6e6e6;
+  display: flex;
+  flex-direction: column;
 }
 
 .el-menu-vertical {
   border-right: none;
+  flex: 1;
 }
 
 .el-main {

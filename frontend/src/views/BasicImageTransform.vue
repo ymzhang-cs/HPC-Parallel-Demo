@@ -14,6 +14,7 @@
                         <template #header>
                             <div class="card-header">
                                 <span>原始图片</span>
+                                <el-button size="small" @click="loadSampleImage">示例图片</el-button>
                             </div>
                         </template>
                         <el-upload class="image-uploader" action="#" :auto-upload="false" :show-file-list="false"
@@ -47,6 +48,15 @@
                 </el-col>
             </el-row>
 
+            <!-- 处理模式选择 -->
+            <div class="mode-selection">
+                <el-radio-group v-model="processingMode" @change="handleModeChange">
+                    <el-radio label="parallel">并行模式</el-radio>
+                    <el-radio label="serial">串行模式</el-radio>
+                    <el-radio label="compare">性能对比</el-radio>
+                </el-radio-group>
+            </div>
+
             <!-- 变换操作按钮 -->
             <div class="transform-actions">
                 <el-button type="primary" :loading="loading" @click="handleTransform('grayscale')">
@@ -79,6 +89,33 @@
                     <el-button @click="cancelTransform">取消</el-button>
                 </div>
             </div>
+
+            <!-- 性能对比结果 -->
+            <div class="comparison-result" v-if="comparisonResult">
+                <el-card>
+                    <template #header>
+                        <div class="card-header">
+                            <span>性能对比结果</span>
+                        </div>
+                    </template>
+                    <div class="comparison-content">
+                        <div class="comparison-item">
+                            <h4>并行版本</h4>
+                            <p>执行时间: {{ comparisonResult.parallel?.time?.toFixed(6) || 'N/A' }} 秒</p>
+                            <p>总时间: {{ comparisonResult.parallel?.total_time?.toFixed(6) || 'N/A' }} 秒</p>
+                        </div>
+                        <div class="comparison-item">
+                            <h4>串行版本</h4>
+                            <p>执行时间: {{ comparisonResult.serial?.time?.toFixed(6) || 'N/A' }} 秒</p>
+                            <p>总时间: {{ comparisonResult.serial?.total_time?.toFixed(6) || 'N/A' }} 秒</p>
+                        </div>
+                        <div class="comparison-item">
+                            <h4>加速比</h4>
+                            <p class="speedup">{{ (comparisonResult.speedup || 0).toFixed(2) }}x</p>
+                        </div>
+                    </div>
+                </el-card>
+            </div>
         </div>
     </div>
 </template>
@@ -86,7 +123,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Plus, Picture } from '@element-plus/icons-vue'
 import type { UploadProps, UploadFile } from 'element-plus'
+import { ImageProcessingService } from '../services/apiService'
+import sample1 from '../assets/sample1.jpg'
 
 const imageUrl = ref('')
 const resultImageUrl = ref('')
@@ -94,6 +134,14 @@ const loading = ref(false)
 const currentTransform = ref('')
 const binaryThreshold = ref(128)
 const brightnessValue = ref(0)
+const processingMode = ref('parallel')
+const comparisonResult = ref<any>(null)
+
+// 加载示例图片
+const loadSampleImage = () => {
+    imageUrl.value = sample1
+    ElMessage.success('已加载示例图片')
+}
 
 // 处理图片上传
 const handleUpload: UploadProps['onChange'] = (uploadFile: UploadFile) => {
@@ -118,6 +166,12 @@ const beforeUpload: UploadProps['beforeUpload'] = (file) => {
     return true
 }
 
+// 处理模式变化
+const handleModeChange = () => {
+    currentTransform.value = ''
+    comparisonResult.value = null
+}
+
 // 处理图片变换
 const handleTransform = async (type: string) => {
     if (!imageUrl.value) {
@@ -136,25 +190,54 @@ const applyTransform = async () => {
 
     loading.value = true
     try {
-        // TODO: 调用后端API，传递相应参数
-        // const response = await fetch(`/api/transform/${currentTransform.value}`, {
-        //     method: 'POST',
-        //     body: JSON.stringify({
-        //         image: imageUrl.value,
-        //         parameters: {
-        //             threshold: binaryThreshold.value,
-        //             brightness: brightnessValue.value
-        //         }
-        //     })
-        // })
-        // const data = await response.json()
-        // resultImageUrl.value = data.result
+        // 从imageUrl获取文件对象
+        const response = await fetch(imageUrl.value)
+        const blob = await response.blob()
 
-        // 临时模拟API响应
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        resultImageUrl.value = imageUrl.value
+        // 创建FormData对象
+        const formData = new FormData()
+        formData.append('image', blob, 'image.jpg')
+
+        // 添加参数
+        if (currentTransform.value === 'binary') {
+            formData.append('threshold', binaryThreshold.value.toString())
+        } else if (currentTransform.value === 'brightness') {
+            formData.append('adjustment', brightnessValue.value.toString())
+        }
+
+        let apiResponse: any
+
+        if (processingMode.value === 'compare') {
+            // 性能对比模式
+            formData.append('mode', 'compare')
+            apiResponse = await ImageProcessingService.processImage(`${currentTransform.value}/compare`, formData)
+            comparisonResult.value = apiResponse
+
+            // 显示并行版本的结果
+            if (apiResponse.parallel?.output_file) {
+                const resultBlob = await ImageProcessingService.downloadFile(apiResponse.parallel.output_file)
+                resultImageUrl.value = URL.createObjectURL(resultBlob)
+            }
+
+            const speedup = apiResponse.speedup || 0
+            ElMessage.success(`性能对比完成！加速比: ${speedup.toFixed(2)}x`)
+        } else {
+            // 单模式处理
+            formData.append('mode', processingMode.value)
+            apiResponse = await ImageProcessingService.processImage(currentTransform.value, formData)
+            if (!apiResponse.output_file) throw new Error('未获取到输出文件')
+
+            // 下载处理后的文件
+            const resultBlob = await ImageProcessingService.downloadFile(apiResponse.output_file)
+            resultImageUrl.value = URL.createObjectURL(resultBlob)
+
+            const time = apiResponse.parallel_time || apiResponse.serial_time || apiResponse.cpp_time || apiResponse.processing_time || apiResponse.total_time
+            ElMessage.success(`${apiResponse.message}！用时${time ? time.toFixed(8) : '?'}秒`)
+        }
+
         currentTransform.value = ''
     } catch (error) {
+        console.error('API调用失败:', error)
         ElMessage.error('处理失败，请重试！')
     } finally {
         loading.value = false
@@ -276,5 +359,42 @@ const cancelTransform = () => {
     justify-content: center;
     gap: 20px;
     margin-top: 20px;
+}
+
+.mode-selection {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.comparison-result {
+    margin-top: 20px;
+}
+
+.comparison-content {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.comparison-item {
+    text-align: center;
+    flex: 1;
+}
+
+.comparison-item h4 {
+    margin-bottom: 10px;
+    color: #409EFF;
+}
+
+.comparison-item p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.speedup {
+    font-size: 18px !important;
+    font-weight: bold;
+    color: #67C23A;
 }
 </style>
